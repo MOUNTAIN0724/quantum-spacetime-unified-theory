@@ -151,10 +151,16 @@ class QSTCalculator:
         
         x = M / M_th
         
-        # 尺度依賴函數
-        if x < 1.0:
-            f = np.exp(-(1.0 - x))
-        else:
+        # 改進的尺度依賴函數
+        if x < 0.001:  # 極小質量
+            f = 0.0
+        elif x < 0.01:  # 很小質量
+            f = 0.1 * (x / 0.01)
+        elif x < 0.1:  # 小質量
+            f = 0.1 + 0.2 * (np.log10(x) + 2)
+        elif x < 1.0:  # 中等質量
+            f = 0.3 + 0.7 * (x - 0.1) / 0.9
+        else:  # 大質量
             f = 1.0 - np.exp(-(x - 1.0))
         
         beta_eff = beta0 * f
@@ -186,19 +192,19 @@ class QSTCalculator:
         返回:
             a_eff/a₀ 比值
         """
-        # 簡化的分段函數
+        # 改進的分段函數，邊界更清晰
         if sigma < 0.001:
             return 0.0001
         elif sigma < 0.01:
-            return 0.0005
+            return 0.0005 * (sigma / 0.01)**0.5
         elif sigma < 0.1:
-            return 0.001
+            return 0.001 * (sigma / 0.1)**1.0
         elif sigma < 0.5:
-            return 0.01
+            return 0.005 * (sigma / 0.5)**1.5  # 調整邊界
         elif sigma < 5.0:
-            return 0.1
+            return 0.05 * (sigma / 5.0)**1.0   # 調整係數
         elif sigma < 50.0:
-            return 0.5
+            return 0.5 * (sigma / 50.0)**0.5
         else:
             return 1.0
     
@@ -234,12 +240,15 @@ class QSTCalculator:
         # 標準加速度
         a0_standard = 1.2e-10  # m/s²
         
-        # 計算旋轉速度 (簡化公式)
-        # V_qst^4 = G * M_baryon * a_eff
+        # 改進的旋轉速度公式
+        # V_qst^4 = G * M_baryon * a_eff * (1 + β_eff)
         M_baryon_kg = M_baryon * self.constants.M_SUN
         a_eff = a0_standard * a_ratio
         
-        v4 = self.constants.G * M_baryon_kg * a_eff
+        # 計算β_eff（使用星系質量）
+        beta_eff = self.beta_effective(M_baryon_kg)
+        
+        v4 = self.constants.G * M_baryon_kg * a_eff * (1.0 + beta_eff)
         v_qst = v4**0.25
         
         # 轉換為km/s
@@ -303,7 +312,7 @@ def test_qst_calculator():
     # 示例: 一個典型的矮星系
     M_baryon = 1e9  # 10^9 M_sun
     R_disk = 2.0    # 2 kpc
-    sigma = 0.2     # 表面密度
+    sigma = 0.3     # 表面密度
     
     v_rot, a_ratio = calc_local.galaxy_rotation_velocity(M_baryon, R_disk, sigma)
     print(f"重子質量: {M_baryon:.2e} M_sun")
