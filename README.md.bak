@@ -1,0 +1,61 @@
+# 量子時空統一理論 (Quantum Spacetime Unified Theory)
+
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+
+## 📖 簡介
+
+量子時空統一理論（QST）是一個統一的理論框架，旨在解釋：
+- 暗能量（Ω_DE = 0.690309）
+- 第五力效應（尺度依賴）
+- 星系旋轉曲線
+- 量子引力現象
+
+## 🚀 快速開始
+
+```bash
+# 安裝
+pip install numpy scipy matplotlib
+
+# 導入計算器
+from src.core.qst_calculator_v45_final import QSTCalculator_v45
+
+# 計算暗能量密度
+calc = QSTCalculator_v45('sparc_optimized')
+omega_de = calc.dark_energy_density()  # 0.690309
+📊 主要特性
+✅ 精確匹配觀測暗能量密度
+
+✅ 解釋火星時間延遲（81.8 μs/日）
+
+✅ 與SPARC星系數據庫兼容
+
+✅ 多尺度統一描述
+
+🔬 理論版本
+當前穩定版本：v4.5.1
+
+修復了β_eff函數邊界條件
+
+優化了SPARC數據庫參數
+
+完整的測試套件
+
+📚 文檔
+詳細文檔請參考：
+
+理論框架
+
+參數規範
+
+使用指南
+
+🤝 貢獻
+歡迎貢獻！請閱讀貢獻指南。
+
+📄 許可證
+本項目使用MIT許可證 - 詳見LICENSE文件。
+
+📞 聯繫
+如有問題，請通過GitHub Issues提出。
