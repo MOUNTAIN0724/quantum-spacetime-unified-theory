@@ -25,29 +25,45 @@ quantum-spacetime-unified-theory/
 ├── docs/ # 理論文檔 (v4.1-v4.5)
 
 │ ├── 01-parameter-specification-v4.1.md
+
 │ ├── 02-mathematical-framework-v4.1.md
+
 │ ├── 03-physical-interpretation-v4.2.md
+
 │ ├── 04-numerical-simulation-guide-v4.2.md
+
 │ ├── 05-observational-predictions-v4.2.md
+
 │ ├── 06-dwarf-galaxy-solution-v4.2.md
+
 │ └── 07-SPARC-test-results-v4.5.md
+
 ├── src/ # Python源代碼
+
 │ ├── core/ # 核心理論計算
+
 │ ├── simulation/ # 數值模擬
+
 │ ├── analysis/ # 數據分析
+
 │ └── utils/ # 工具函數
+
 ├── notebooks/ # Jupyter示例
+
 ├── config/ # 配置文件
+
 ├── scripts/ # 運行腳本
+
 ├── presentations/ # 演示文稿
+
 ├── tests/ # 測試文件
+
 └── data/ # 數據文件
 
 text
 
 ## 🚀 快速開始
 
-```bash
 # 克隆倉庫 (使用SSH)
 git clone git@github.com:MOUNTAIN0724/quantum-spacetime-unified-theory.git
 
