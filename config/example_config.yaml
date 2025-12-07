@@ -1,0 +1,130 @@
+# 量子時空統一理論 - 配置示例
+
+# 宇宙學參數
+cosmology:
+  H0: 67.36                # 哈勃常數 [km/s/Mpc]
+  Omega_b: 0.0493          # 重子密度參數
+  Omega_cdm: 0.2647        # 冷暗物質密度參數
+  Omega_m: 0.3140          # 總物質密度參數
+  Omega_DE: 0.6853         # 暗能量密度參數 (觀測值)
+
+# QST理論參數
+qst_parameters:
+  # 場值 (歸一化到M_pl)
+  fields:
+    phi_plus: 1.621
+    phi_minus: 1.459
+    omega: 1.297
+  
+  # 有效質量 (H₀單位)
+  masses:
+    m_phi_eff: 0.08
+    m_omega_eff: 0.06
+    mu: 0.00306
+  
+  # 第五力參數
+  fifth_force:
+    m_omega_5th: 1.44e-21  # [eV]
+    lambda_5th: 915.0      # [AU]
+    beta0: 0.279
+    M_th: 1.0e22           # [kg]
+  
+  # 勢能常數
+  potential:
+    V_const: 2.0527
+
+# 數值模擬設置
+simulation:
+  # 宇宙演化
+  cosmic_evolution:
+    N_points: 10000
+    N_range: [-30, 0]      # N = ln(a)
+    solver: 'dop853'       # 數值求解器
+  
+  # 星系模擬
+  galaxy_simulation:
+    sigma_crit: 0.1        # 臨界表面密度
+    alpha_sigma: 1.5       # 冪律指數
+    beta_sigma: 0.3        # 指數截斷
+    n_radial_bins: 50      # 徑向分區數
+    R_max: 10.0            # 最大半徑 [kpc]
+
+# 可視化設置
+visualization:
+  # 圖形風格
+  style: 'seaborn-v0_8-darkgrid'
+  figure_size: [10, 6]
+  dpi: 150
+  
+  # 顏色方案
+  colors:
+    phi_plus: '#1f77b4'    # 藍色
+    phi_minus: '#ff7f0e'   # 橙色
+    omega: '#2ca02c'       # 綠色
+    dark_energy: '#d62728' # 紅色
+  
+  # 字體設置
+  font:
+    family: 'DejaVu Sans'
+    size: 12
+
+# 輸出設置
+output:
+  # 文件格式
+  formats: ['png', 'pdf', 'h5']
+  
+  # 目錄結構
+  directories:
+    cosmic_evolution: 'results/cosmic/'
+    galaxy_simulation: 'results/galaxy/'
+    sparc_analysis: 'results/sparc/'
+  
+  # 數據保存
+  data:
+    save_full_results: true
+    compression: 'gzip'
+    compression_level: 5
+
+# 性能設置
+performance:
+  # 並行計算
+  parallel:
+    enabled: true
+    n_workers: 4
+    backend: 'multiprocessing'
+  
+  # 緩存
+  cache:
+    enabled: true
+    directory: '.cache'
+    max_size: '1GB'
+  
+  # JIT編譯
+  jit:
+    enabled: false
+    nopython: true
+
+# 測試設置
+testing:
+  # 單元測試
+  unit_tests:
+    coverage_target: 0.8
+    timeout: 30  # 秒
+  
+  # 集成測試
+  integration_tests:
+    data_path: 'tests/data/'
+    reference_results: 'tests/reference/'
+
+# 開發設置
+development:
+  # 代碼質量
+  code_quality:
+    line_length: 88
+    docstring_style: 'google'
+    type_hints: true
+  
+  # 預提交檢查
+  pre_commit:
+    enabled: true
+    checks: ['black', 'flake8', 'mypy', 'pytest']

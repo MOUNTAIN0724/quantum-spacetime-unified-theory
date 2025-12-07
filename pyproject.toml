@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qst-theory"
+version = "0.1.0"
+description = "Quantum Space-Time Unified Theory Framework"
+readme = "README.md"
+authors = [
+    {name = "QST Research Team", email = "qst-research@example.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+keywords = ["physics", "cosmology", "quantum-gravity", "unified-theory"]
+dependencies = [
+    "numpy>=1.21.0",
+    "scipy>=1.7.0",
+    "matplotlib>=3.5.0",
+    "pandas>=1.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "mypy>=0.950",
+]
+full = [
+    "astropy>=5.0",
+    "astroquery>=0.4.6",
+    "camb>=1.3.2",
+    "h5py>=3.7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/MOUNTAIN0724/quantum-spacetime-unified-theory"
+Repository = "https://github.com/MOUNTAIN0724/quantum-spacetime-unified-theory"
+Issues = "https://github.com/MOUNTAIN0724/quantum-spacetime-unified-theory/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=src --cov-report=term-missing"
