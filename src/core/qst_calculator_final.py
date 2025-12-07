@@ -1,5 +1,5 @@
 """
-量子时空统一理论 - 核心计算器 v4.5 (最终正确版)
+量子时空统一理论 - 核心计算器 v4.5 (最终修复版)
 """
 
 import numpy as np
@@ -19,7 +19,39 @@ class QSTCalculator:
     
     def _setup_parameters(self):
         """设置参数"""
-        if self.param_set == 'sparc_optimized':
+        if self.param_set == 'bare':
+            self.params = {
+                'phi_plus': self.qst_constants.PHI_PLUS,
+                'phi_minus': self.qst_constants.PHI_MINUS,
+                'omega': self.qst_constants.OMEGA,
+                'm_phi': 0.935,
+                'm_omega': 1.0,
+                'mu': self.qst_constants.MU,
+                'lambda1': 2.34e-6,
+                'lambda2': 3.78e-7,
+                'lambda3': 1.29e-8,
+            }
+        elif self.param_set == 'effective':
+            self.params = {
+                'phi_plus': self.qst_constants.PHI_PLUS,
+                'phi_minus': self.qst_constants.PHI_MINUS,
+                'omega': self.qst_constants.OMEGA,
+                'm_phi': self.qst_constants.M_PHI_EFF,
+                'm_omega': self.qst_constants.M_OMEGA_EFF,
+                'mu': self.qst_constants.MU,
+                'V_const': self.qst_constants.V_CONST,
+            }
+        elif self.param_set == 'local':
+            self.params = {
+                'phi_plus': self.qst_constants.PHI_PLUS,
+                'phi_minus': self.qst_constants.PHI_MINUS,
+                'omega': self.qst_constants.OMEGA,
+                'm_omega_5th': self.qst_constants.M_OMEGA_5TH,
+                'lambda_5th': self.qst_constants.LAMBDA_5TH,
+                'beta0': self.qst_constants.BETA0,
+                'M_th': self.qst_constants.M_TH,
+            }
+        elif self.param_set == 'sparc_optimized':
             self.params = {
                 'phi_plus': self.qst_constants.PHI_PLUS,
                 'phi_minus': self.qst_constants.PHI_MINUS,
@@ -38,43 +70,11 @@ class QSTCalculator:
                 'mu': self.qst_constants.MU,
                 'V_const': self.qst_constants.V_CONST,
             }
-        elif self.param_set == 'local':
-            self.params = {
-                'phi_plus': self.qst_constants.PHI_PLUS,
-                'phi_minus': self.qst_constants.PHI_MINUS,
-                'omega': self.qst_constants.OMEGA,
-                'm_omega_5th': self.qst_constants.M_OMEGA_5TH,
-                'lambda_5th': self.qst_constants.LAMBDA_5TH,
-                'beta0': self.qst_constants.BETA0,
-                'M_th': self.qst_constants.M_TH,
-            }
-        elif self.param_set == 'effective':
-            self.params = {
-                'phi_plus': self.qst_constants.PHI_PLUS,
-                'phi_minus': self.qst_constants.PHI_MINUS,
-                'omega': self.qst_constants.OMEGA,
-                'm_phi': self.qst_constants.M_PHI_EFF,
-                'm_omega': self.qst_constants.M_OMEGA_EFF,
-                'mu': self.qst_constants.MU,
-                'V_const': self.qst_constants.V_CONST,
-            }
-        elif self.param_set == 'bare':
-            self.params = {
-                'phi_plus': self.qst_constants.PHI_PLUS,
-                'phi_minus': self.qst_constants.PHI_MINUS,
-                'omega': self.qst_constants.OMEGA,
-                'm_phi': 0.935,
-                'm_omega': 1.0,
-                'mu': self.qst_constants.MU,
-                'lambda1': 2.34e-6,
-                'lambda2': 3.78e-7,
-                'lambda3': 1.29e-8,
-            }
         else:
             raise ValueError(f"未知参数集: {self.param_set}")
     
     def beta_effective(self, M: float) -> float:
-        """计算尺度依赖的耦合常数 β_eff(M) - 完全正确版"""
+        """计算尺度依赖的耦合常数 β_eff(M) - 修复版"""
         if self.param_set not in ['local', 'sparc_optimized']:
             raise ValueError("此计算需要局部参数集")
         
@@ -83,31 +83,42 @@ class QSTCalculator:
         
         x = M / M_th
         
-        # 完全明确的区间判断，避免边界问题
-        if x < 0.001:
+        # v4.5优化后的尺度依赖函数 - 使用更精确的边界处理
+        # 使用numpy的isclose来处理浮点数精度
+        if x < 1e-6:
+            f = 0.0
+        elif np.isclose(x, 0.001, rtol=1e-10) or (1e-6 <= x < 0.001):
             f = 0.001
-        elif 0.001 <= x < 0.01:
+        elif np.isclose(x, 0.01, rtol=1e-10) or (0.001 <= x < 0.01):
             f = 0.01
-        elif 0.01 <= x < 0.1:
+        elif np.isclose(x, 0.1, rtol=1e-10) or (0.01 <= x < 0.1):
             f = 0.1
-        elif 0.1 <= x < 0.5:
+        elif np.isclose(x, 0.5, rtol=1e-10) or (0.1 <= x < 0.5):
             f = 0.5
-        elif 0.5 <= x < 0.8:  # 明确包含0.5
+        elif np.isclose(x, 0.8, rtol=1e-10) or (0.5 <= x < 0.8):
             f = 0.7
-        elif 0.8 <= x < 1.0:
-            # 线性插值: x=0.8时f=0.7, x=1.0时f=0.8
-            f = 0.7 + 0.1 * (x - 0.8) / 0.2
-        elif 1.0 <= x < 2.0:
-            # 线性插值: x=1.0时f=0.8, x=2.0时f=0.9
-            f = 0.8 + 0.1 * (x - 1.0) / 1.0
-        else:  # x >= 2.0
+        elif np.isclose(x, 1.0, rtol=1e-10) or (0.8 <= x < 1.0):
+            if x < 0.8:
+                f = 0.7
+            elif x >= 1.0:
+                f = 0.8
+            else:
+                f = 0.7 + 0.1 * (x - 0.8) / 0.2
+        elif np.isclose(x, 2.0, rtol=1e-10) or (1.0 <= x < 2.0):
+            if x < 1.0:
+                f = 0.8
+            elif x >= 2.0:
+                f = 0.9
+            else:
+                f = 0.8 + 0.1 * (x - 1.0) / 1.0
+        else:
             f = 0.9
         
         beta_eff = beta0 * f
         
         return beta_eff
     
-    # 保持其他函数不变...
+    # 其他函数保持不变...
     def dark_energy_density(self) -> float:
         if self.param_set not in ['effective', 'sparc_optimized']:
             raise ValueError("此计算需要有效参数集")
@@ -145,39 +156,42 @@ class QSTCalculator:
     
     def effective_a0_ratio(self, sigma: float) -> float:
         if self.param_set == 'sparc_optimized':
-            A_low = self.params['A_low']
-            sigma_crit = self.params['sigma_crit']
-            sigma_transition = self.params['sigma_transition']
-            
-            if sigma < sigma_crit:
-                return A_low
-            elif sigma < sigma_transition:
-                frac = (sigma - sigma_crit) / (sigma_transition - sigma_crit)
-                return A_low + (1.0 - A_low) * frac
-            else:
-                return 1.0
+            return self._effective_a0_ratio_v45(sigma)
+        
+        if sigma < 0.001:
+            return 0.0005
+        elif sigma < 0.01:
+            return 0.0005 + 0.0005 * (sigma - 0.001) / 0.009
+        elif sigma < 0.1:
+            return 0.001 + 0.001 * (sigma - 0.01) / 0.09
+        elif sigma < 0.3:
+            return 0.002 + 0.003 * (sigma - 0.1) / 0.2
+        elif sigma < 0.5:
+            return 0.005 + 0.005 * (sigma - 0.3) / 0.2
+        elif sigma < 1.0:
+            return 0.01 + 0.04 * (sigma - 0.5) / 0.5
+        elif sigma < 5.0:
+            return 0.05 + 0.45 * (sigma - 1.0) / 4.0
+        elif sigma < 10.0:
+            return 0.5 + 0.3 * (sigma - 5.0) / 5.0
+        elif sigma < 50.0:
+            return 0.8 + 0.2 * (sigma - 10.0) / 40.0
         else:
-            # 兼容函数
-            if sigma < 0.001:
-                return 0.0005
-            elif sigma < 0.01:
-                return 0.0005 + 0.0005 * (sigma - 0.001) / 0.009
-            elif sigma < 0.1:
-                return 0.001 + 0.001 * (sigma - 0.01) / 0.09
-            elif sigma < 0.3:
-                return 0.002 + 0.003 * (sigma - 0.1) / 0.2
-            elif sigma < 0.5:
-                return 0.005 + 0.005 * (sigma - 0.3) / 0.2
-            elif sigma < 1.0:
-                return 0.01 + 0.04 * (sigma - 0.5) / 0.5
-            elif sigma < 5.0:
-                return 0.05 + 0.45 * (sigma - 1.0) / 4.0
-            elif sigma < 10.0:
-                return 0.5 + 0.3 * (sigma - 5.0) / 5.0
-            elif sigma < 50.0:
-                return 0.8 + 0.2 * (sigma - 10.0) / 40.0
-            else:
-                return 1.0
+            return 1.0
+    
+    def _effective_a0_ratio_v45(self, sigma: float) -> float:
+        A_low = self.params['A_low']
+        sigma_crit = self.params['sigma_crit']
+        sigma_transition = self.params['sigma_transition']
+        alpha = self.params['alpha']
+        
+        if sigma < sigma_crit:
+            return A_low
+        elif sigma < sigma_transition:
+            frac = (sigma - sigma_crit) / (sigma_transition - sigma_crit)
+            return A_low + (1.0 - A_low) * (frac ** alpha)
+        else:
+            return 1.0
     
     def galaxy_rotation_velocity(self, M_baryon: float, R_disk: float, 
                                 sigma: Optional[float] = None) -> Tuple[float, float]:

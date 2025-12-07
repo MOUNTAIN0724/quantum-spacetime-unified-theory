@@ -1,0 +1,58 @@
+name: 🔒 安全檢查
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # 每週日
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: 🔍 依賴審查
+      uses: actions/dependency-review-action@v3
+    
+  codeql:
+    name: CodeQL分析
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    
+    steps:
+    - name: 🚀 檢出代碼
+      uses: actions/checkout@v4
+    
+    - name: 🔍 初始化CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: python
+    
+    - name: 🏗️ 自動構建
+      uses: github/codeql-action/autobuild@v2
+    
+    - name: 🔎 執行CodeQL分析
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:python"
+    
+  snyk:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: 🐍 設置Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+    
+    - name: 🔒 運行Snyk掃描
+      uses: snyk/actions/python@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high

@@ -1,5 +1,6 @@
 """
-QST计算器测试
+QST计算器测试 - v4.5版本
+基于SPARC优化的最终版本
 """
 
 import pytest
@@ -7,101 +8,150 @@ import numpy as np
 from src.core.qst_calculator import QSTCalculator
 
 
-class TestQSTCalculator:
-    """测试QST计算器"""
+def calculate_expected_a_ratio(sigma, A_low=0.015, sigma_crit=0.4, sigma_transition=2.5):
+    """计算a_eff/a₀的期望值"""
+    if sigma < sigma_crit:
+        return A_low
+    elif sigma < sigma_transition:
+        frac = (sigma - sigma_crit) / (sigma_transition - sigma_crit)
+        return A_low + (1.0 - A_low) * frac
+    else:
+        return 1.0
+
+
+class TestQSTCalculator_v45:
+    """测试QST计算器 v4.5"""
     
     def test_effective_parameters(self):
         """测试有效参数集"""
         calc = QSTCalculator('effective')
         omega_de = calc.dark_energy_density()
-        
-        # 检查暗能量密度计算
         assert abs(omega_de - 0.690309) < 1e-6, f"Ω_DE计算错误: {omega_de}"
-        
-        # 检查参数设置
-        assert 'phi_plus' in calc.params
-        assert 'phi_minus' in calc.params
-        assert 'omega' in calc.params
+        print("✅ test_effective_parameters: 通过")
     
-    def test_local_parameters(self):
-        """测试局部参数集"""
+    def test_local_parameters_v45(self):
+        """测试局部参数集 - v4.5版本"""
         calc = QSTCalculator('local')
         
-        # 测试火星时间延迟
+        # 火星时间延迟
         tau_mars = calc.mars_time_delay()
-        assert 75 < tau_mars < 85, f"火星时间延迟异常: {tau_mars} μs/日"
+        expected = 0.8 * 3.386e-9 * 86400 * 1e6
+        assert abs(tau_mars - expected) < 0.1, f"火星时间延迟异常: {tau_mars} μs/日"
         
-        # 测试第五力力程
+        # 第五力力程
         lambda_m, lambda_au = calc.fifth_force_range()
         assert 800 < lambda_au < 1000, f"第五力力程异常: {lambda_au} AU"
         
-        # 测试尺度依赖函数 - 地球应该有接近β₀的值
-        beta_earth = calc.beta_effective(5.97e24)  # 地球质量
-        assert 0.25 < beta_earth < 0.29, f"地球β_eff异常: {beta_earth}"
+        # 地球β_eff
+        beta_earth = calc.beta_effective(5.97e24)
+        assert abs(beta_earth - 0.72) < 1e-10, f"地球β_eff异常: {beta_earth}"
+        
+        print("✅ test_local_parameters_v45: 通过")
     
-    def test_beta_effective_function(self):
-        """测试尺度依赖函数"""
-        calc = QSTCalculator('local')
+    def test_sparc_optimized_parameters(self):
+        """测试SPARC优化参数集"""
+        calc = QSTCalculator('sparc_optimized')
+        params = calc.get_parameters()
         
-        # 测试极小质量
-        beta_tiny = calc.beta_effective(0.001)  # 1g
-        assert beta_tiny == 0.0, f"极小质量β_eff应为0: {beta_tiny}"
+        # 检查关键v4.5参数
+        assert abs(params['beta0'] - 0.8) < 1e-6, f"β₀应该是0.8: {params['beta0']}"
+        assert abs(params['A_low'] - 0.015) < 1e-6, f"A_low应该是0.015: {params['A_low']}"
+        assert abs(params['sigma_crit'] - 0.4) < 1e-6, f"sigma_crit应该是0.4: {params['sigma_crit']}"
+        assert abs(params['sigma_transition'] - 2.5) < 1e-6, f"sigma_transition应该是2.5: {params['sigma_transition']}"
+        assert abs(params['alpha'] - 1.0) < 1e-6, f"alpha应该是1.0: {params['alpha']}"
         
-        # 测试小质量
-        beta_small = calc.beta_effective(1.0)  # 1kg
-        assert beta_small < 0.003, f"小质量β_eff过大: {beta_small}"
-        
-        # 测试大质量 (x > 2.0)
-        beta_large = calc.beta_effective(1e30)  # 太阳质量级
-        assert 0.25 < beta_large < 0.26, f"大质量β_eff异常: {beta_large}"
-        
-        # 测试质量阈值附近 - 现在应该是0.279×0.8=0.2232
-        beta_threshold = calc.beta_effective(calc.params['M_th'])
-        assert 0.22 < beta_threshold < 0.23, f"阈值质量β_eff异常: {beta_threshold}"
+        print("\n✅ v4.5参数验证通过")
+        for key in ['beta0', 'A_low', 'sigma_crit', 'sigma_transition', 'alpha']:
+            print(f"  {key}: {params[key]}")
     
-    def test_effective_a0_ratio(self):
-        """测试有效加速度比例"""
-        calc = QSTCalculator('local')
+    def test_beta_effective_function_v45(self):
+        """测试尺度依赖函数 - v4.5版本"""
+        calc = QSTCalculator('sparc_optimized')
         
-        # 测试极低表面密度
-        a_ratio_low = calc.effective_a0_ratio(0.001)
-        assert 0.0004 < a_ratio_low < 0.0006, f"低σ a_eff异常: {a_ratio_low}"
+        beta0 = calc.params['beta0']
+        M_th = calc.params['M_th']
         
-        # 测试关键值σ=0.3 (矮星系典型值)
-        a_ratio_03 = calc.effective_a0_ratio(0.3)
-        assert 0.0049 < a_ratio_03 < 0.0051, f"σ=0.3时a_eff异常: {a_ratio_03}"
+        # 测试具体x值
+        test_cases = [
+            (0.0000001, 0.0),   # x < 1e-6
+            (0.0005, 0.0008),    # 0.000001 ≤ x < 0.001, f=0.001
+            (0.001, 0.0008),     # x = 0.001, f=0.001
+            (0.005, 0.008),      # 0.001 ≤ x < 0.01, f=0.01
+            (0.05, 0.08),        # 0.01 ≤ x < 0.1, f=0.1
+            (0.5, 0.56),         # 0.8×0.7=0.56
+            (0.8, 0.56),       # 0.8×0.7=0.56  
+            (1.0, 0.64),       # 0.8×0.8=0.64
+            (2.0, 0.72),       # 0.8×0.9=0.72
+        ]
         
-        # 测试中等表面密度
-        a_ratio_mid = calc.effective_a0_ratio(1.0)
-        assert 0.04 < a_ratio_mid < 0.06, f"中σ a_eff异常: {a_ratio_mid}"
+        print("\nβ_eff函数测试:")
+        for x, expected in test_cases:
+            M = x * M_th
+            beta = calc.beta_effective(M)
+            assert abs(beta - expected) < 1e-10, f"x={x}: β_eff={beta} (期望{expected})"
+            f = beta / beta0
+            print(f"  x={x:.3f}: f={f:.3f}, β_eff={beta:.4f} ✓")
         
-        # 测试高表面密度
-        a_ratio_high = calc.effective_a0_ratio(100.0)
-        assert 0.8 < a_ratio_high <= 1.0, f"高σ a_eff异常: {a_ratio_high}"
-        
-        # 测试边界情况
-        a_ratio_05 = calc.effective_a0_ratio(0.5)
-        a_ratio_50 = calc.effective_a0_ratio(50.0)
-        assert a_ratio_05 < a_ratio_50, "函数应为单调递增"
+        print("✅ test_beta_effective_function_v45: 通过")
     
-    def test_galaxy_rotation_velocity(self):
-        """测试星系旋转速度计算"""
-        calc = QSTCalculator('local')
+    def test_effective_a0_ratio_v45(self):
+        """测试有效加速度比例 - v4.5版本"""
+        calc = QSTCalculator('sparc_optimized')
         
-        # 测试矮星系参数
+        # 测试分段函数 - 使用动态计算的正确期望值
+        test_sigmas = [0.001, 0.1, 0.4, 0.5, 1.0, 2.0, 2.5, 3.0, 10.0]
+        
+        print("\na_eff/a₀函数测试:")
+        all_passed = True
+        
+        for sigma in test_sigmas:
+            # 计算正确的期望值
+            expected = calculate_expected_a_ratio(sigma)
+            
+            # 获取实际值
+            ratio = calc.effective_a0_ratio(sigma)
+            diff = abs(ratio - expected)
+            passed = diff < 1e-4
+            
+            if not passed:
+                all_passed = False
+                print(f"  σ={sigma}: {ratio:.6f} (期望{expected:.6f}) ✗ 误差={diff:.6f}")
+            else:
+                # 计算frac用于显示
+                if 0.4 <= sigma < 2.5:
+                    frac = (sigma - 0.4) / (2.5 - 0.4)
+                    print(f"  σ={sigma:.3f}: {ratio:.6f} (frac={frac:.4f}) ✓")
+                else:
+                    print(f"  σ={sigma:.3f}: {ratio:.6f} ✓")
+        
+        assert all_passed, "a_eff/a₀函数测试失败"
+        print("✅ test_effective_a0_ratio_v45: 通过")
+    
+    def test_galaxy_rotation_velocity_v45(self):
+        """测试星系旋转速度计算 - v4.5版本"""
+        calc = QSTCalculator('sparc_optimized')
+        
+        # 测试矮星系参数 (σ=0.4)
         v_rot, a_ratio = calc.galaxy_rotation_velocity(
             M_baryon=1e9,    # 10^9 M_sun
             R_disk=2.0,      # 2 kpc
-            sigma=0.3        # 表面密度
+            sigma=0.4        # 表面密度
         )
         
-        # 检查结果在合理范围
-        assert 20 < v_rot < 25, f"矮星系旋转速度异常: {v_rot} km/s"
-        assert 0.0049 < a_ratio < 0.0051, f"矮星系a_eff异常: {a_ratio}"
+        # 验证a_eff比例
+        assert abs(a_ratio - 0.015) < 1e-6, f"矮星系a_eff异常: {a_ratio} (期望0.015)"
+        
+        # 检查速度在合理范围
+        assert 25 < v_rot < 35, f"矮星系旋转速度异常: {v_rot} km/s"
         
         # 测试计算一致性
-        v_rot2, a_ratio2 = calc.galaxy_rotation_velocity(2e9, 2.0, 0.3)
+        v_rot2, a_ratio2 = calc.galaxy_rotation_velocity(2e9, 2.0, 0.4)
         assert v_rot2 > v_rot, "质量增加速度应增加"
+        
+        print(f"\n矮星系测试:")
+        print(f"  M=1e9 M_sun, R=2 kpc, σ=0.4")
+        print(f"  V={v_rot:.1f} km/s, a_eff/a₀={a_ratio:.4f} ✓")
+        print("✅ test_galaxy_rotation_velocity_v45: 通过")
     
     def test_parameter_sets(self):
         """测试不同参数集"""
@@ -109,19 +159,25 @@ class TestQSTCalculator:
         calc_bare = QSTCalculator('bare')
         calc_eff = QSTCalculator('effective')
         calc_local = QSTCalculator('local')
+        calc_sparc = QSTCalculator('sparc_optimized')
         
         assert calc_bare.param_set == 'bare'
         assert calc_eff.param_set == 'effective'
         assert calc_local.param_set == 'local'
+        assert calc_sparc.param_set == 'sparc_optimized'
         
         # 测试无效参数集
         with pytest.raises(ValueError):
             QSTCalculator('invalid')
+        
+        print("\n✅ 所有参数集初始化成功")
+        print("✅ test_parameter_sets: 通过")
     
     def test_dark_energy_only_effective(self):
         """测试暗能量计算仅在有效参数集"""
         calc_local = QSTCalculator('local')
         calc_bare = QSTCalculator('bare')
+        calc_sparc = QSTCalculator('sparc_optimized')
         
         # 局部参数集不应支持暗能量计算
         with pytest.raises(ValueError):
@@ -130,11 +186,19 @@ class TestQSTCalculator:
         # 裸参数集不应支持暗能量计算
         with pytest.raises(ValueError):
             calc_bare.dark_energy_density()
+        
+        # sparc_optimized参数集应支持暗能量计算
+        omega_de = calc_sparc.dark_energy_density()
+        assert abs(omega_de - 0.690309) < 1e-6
+        
+        print("\n✅ 暗能量计算权限验证通过")
+        print("✅ test_dark_energy_only_effective: 通过")
     
     def test_mars_delay_only_local(self):
         """测试火星延迟计算仅在局部参数集"""
         calc_eff = QSTCalculator('effective')
         calc_bare = QSTCalculator('bare')
+        calc_sparc = QSTCalculator('sparc_optimized')
         
         # 有效参数集不应支持火星延迟计算
         with pytest.raises(ValueError):
@@ -143,23 +207,39 @@ class TestQSTCalculator:
         # 裸参数集不应支持火星延迟计算
         with pytest.raises(ValueError):
             calc_bare.mars_time_delay()
+        
+        # sparc_optimized参数集应支持火星延迟计算
+        tau_mars = calc_sparc.mars_time_delay()
+        expected = 0.8 * 3.386e-9 * 86400 * 1e6
+        assert abs(tau_mars - expected) < 0.1
+        
+        print("\n✅ 火星延迟计算权限验证通过")
+        print(f"  火星时间延迟: {tau_mars:.1f} μs/日")
+        print("✅ test_mars_delay_only_local: 通过")
     
     def test_consistency(self):
         """测试计算一致性"""
-        calc = QSTCalculator('local')
+        calc = QSTCalculator('sparc_optimized')
         
         # 测试相同输入得到相同输出
-        v1, a1 = calc.galaxy_rotation_velocity(1e9, 2.0, 0.3)
-        v2, a2 = calc.galaxy_rotation_velocity(1e9, 2.0, 0.3)
+        v1, a1 = calc.galaxy_rotation_velocity(1e9, 2.0, 0.4)
+        v2, a2 = calc.galaxy_rotation_velocity(1e9, 2.0, 0.4)
         
         assert abs(v1 - v2) < 1e-10, "计算不一致"
         assert abs(a1 - a2) < 1e-10, "计算不一致"
         
         # 测试不同输入得到不同输出
-        v3, a3 = calc.galaxy_rotation_velocity(2e9, 2.0, 0.3)
+        v3, a3 = calc.galaxy_rotation_velocity(2e9, 2.0, 0.4)
         assert abs(v3 - v1) > 1e-10, "质量不同但速度相同"
+        
+        print("\n✅ 计算一致性验证通过")
+        print("✅ test_consistency: 通过")
 
 
 if __name__ == "__main__":
+    print("=" * 60)
+    print("QST v4.5 完整测试套件")
+    print("=" * 60)
+    
     # 运行测试
-    pytest.main([__file__, "-v"])
+    pytest.main([__file__, "-v", "--tb=short"])

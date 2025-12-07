@@ -1,0 +1,32 @@
+'area:theory':
+  - changed-files:
+    - any-glob-to-any-file: ['src/core/*.py', 'docs/theory/**']
+
+'area:simulation':
+  - changed-files:
+    - any-glob-to-any-file: ['src/simulation/*.py', 'examples/simulation/**']
+
+'area:analysis':
+  - changed-files:
+    - any-glob-to-any-file: ['src/analysis/*.py', 'examples/analysis/**']
+
+'area:visualization':
+  - changed-files:
+    - any-glob-to-any-file: ['src/visualization/*.py', 'examples/plots/**']
+
+'type:documentation':
+  - changed-files:
+    - any-glob-to-any-file: ['docs/**', '*.md', '*.rst']
+
+'type:test':
+  - changed-files:
+    - any-glob-to-any-file: ['tests/**']
+
+'priority:high':
+  - head-branch: ['hotfix/*', 'release/*']
+
+'priority:medium':
+  - head-branch: ['feature/*', 'bugfix/*']
+
+'priority:low':
+  - head-branch: ['docs/*', 'chore/*']

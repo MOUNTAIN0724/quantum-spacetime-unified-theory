@@ -1,0 +1,60 @@
+name: 🚀 發布
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: 🐍 設置Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+    
+    - name: 📦 安裝構建工具
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: 🏗️ 構建分發包
+      run: |
+        python -m build
+    
+    - name: 🔒 檢查分發包
+      run: |
+        twine check dist/*
+    
+    - name: 📤 上傳構件
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+    
+    - name: 🚀 創建GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/*.whl
+          dist/*.tar.gz
+          docs/build/docs.zip
+        generate_release_notes: true
+
+  publish-pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+    
+    - name: 🐍 發布到PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}

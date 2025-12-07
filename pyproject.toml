@@ -1,16 +1,14 @@
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "qst-theory"
-version = "0.1.0"
-description = "Quantum Space-Time Unified Theory Framework"
-readme = "README.md"
+name = "quantum-spacetime-unified-theory"
+version = "1.0.0"
+description = "Quantum Spacetime Unified Theory (QST) Implementation"
 authors = [
-    {name = "QST Research Team", email = "qst-research@example.com"}
+    {name = "Quantum Spacetime Research Team", email = "research@qst-theory.org"}
 ]
+readme = "README.md"
+requires-python = ">=3.8"
 license = {text = "MIT"}
+keywords = ["physics", "cosmology", "quantum-gravity", "dark-energy", "dark-matter"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -20,50 +18,153 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-]
-keywords = ["physics", "cosmology", "quantum-gravity", "unified-theory"]
-dependencies = [
-    "numpy>=1.21.0",
-    "scipy>=1.7.0",
-    "matplotlib>=3.5.0",
-    "pandas>=1.3.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "black>=22.0.0",
-    "flake8>=4.0.0",
-    "mypy>=0.950",
-]
-full = [
-    "astropy>=5.0",
-    "astroquery>=0.4.6",
-    "camb>=1.3.2",
-    "h5py>=3.7.0",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 [project.urls]
-Homepage = "https://github.com/MOUNTAIN0724/quantum-spacetime-unified-theory"
-Repository = "https://github.com/MOUNTAIN0724/quantum-spacetime-unified-theory"
-Issues = "https://github.com/MOUNTAIN0724/quantum-spacetime-unified-theory/issues"
+Homepage = "https://github.com/astro-ai/qst-theory"
+Documentation = "https://qst-theory.readthedocs.io/"
+Repository = "https://github.com/astro-ai/qst-theory.git"
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.black]
-line-length = 88
-target-version = ['py38']
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-doctestplus>=1.2.0",
+    "pytest-filter-subpackage>=0.2.0",
+    "pytest-astropy-header>=0.2.2",
+    "pytest-mock>=3.10",
+    "pytest-arraydiff>=0.6",
+    "hypothesis>=6.0",
+]
+dev = [
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+    "pre-commit>=3.0",
+    "jupyter>=1.0",
+    "ipython>=8.0",
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=1.0",
+    "nbsphinx>=0.9",
+    "myst-parser>=2.0",
+]
+full = [
+    "numpy>=1.20",
+    "scipy>=1.8",
+    "matplotlib>=3.5",
+    "astropy>=5.0",
+    "pandas>=1.4",
+    "h5py>=3.0",
+    "camb>=1.3",
+    "astromodels>=2.0",
+    "emcee>=3.1",
+    "corner>=2.0",
+    "tqdm>=4.0",
+    "seaborn>=0.12",
+]
 
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203", "W503"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config",
+    "--doctest-modules",
+    "--doctest-plus",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/setup.py",
+    "*/version.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    'if __name__ == "__main__":',
+    "class .*\\\\bProtocol\\\\b",
+    "@(abc\\\\.)?abstractmethod",
+]
 
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-v --cov=src --cov-report=term-missing"
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__.py are acceptable
+
+[metadata]
+version = "4.5.0"
+license = "MIT"
+author = "QST Research Team"
+author_email = "qst-team@example.com"

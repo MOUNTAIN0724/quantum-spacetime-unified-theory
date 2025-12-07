@@ -1,93 +1,61 @@
 """
-量子時空統一理論 - 物理常數定義
-
-本模塊定義了QST理論中使用的所有物理常數。
+量子时空统一理论 - 物理常数定义
+v4.5版本 - 基于SPARC优化
 """
 
-# 基礎物理常數
 class PhysicalConstants:
-    """物理常數類"""
+    """物理常数"""
     
-    # 基本常數
-    M_PL = 2.176434e-8           # 普朗克質量 [kg]
-    M_PL_eV = 2.176434e17        # 普朗克質量 [eV]
-    H0 = 2.27e-18                # 哈勃常數 [Hz]
-    H0_eV = 1.50e-33             # 哈勃常數 [eV]
-    C = 299792458.0              # 光速 [m/s]
-    G = 6.67430e-11              # 引力常數 [m³/kg/s²]
+    # 基本常数
+    C = 299792458.0                    # 光速 [m/s]
+    G = 6.67430e-11                    # 引力常数 [m³/kg/s²]
+    H0 = 2.27e-18                      # 哈勃常数 [Hz]
+    H0_km_s_Mpc = 67.36                # 哈勃常数 [km/s/Mpc]
     
-    # 天文單位
-    AU = 1.495978707e11          # 天文單位 [m]
-    LY = 9.461e15                # 光年 [m]
-    PC = 3.085677581e16          # 秒差距 [m]
-    KPC = 3.085677581e19         # 千秒差距 [m]
-    MPC = 3.085677581e22         # 百萬秒差距 [m]
+    # 天文单位
+    M_SUN = 1.98847e30                 # 太阳质量 [kg]
+    M_EARTH = 5.9722e24                # 地球质量 [kg]
+    M_MARS = 6.4171e23                 # 火星质量 [kg]
+    AU = 1.495978707e11                # 天文单位 [m]
+    KPC = 3.085677581e19               # 千秒差距 [m]
+    MPC = 3.085677581e22               # 百万秒差距 [m]
+    LY = 9.461e15                      # 光年 [m]
     
-    # 太陽系相關
-    M_SUN = 1.98847e30           # 太陽質量 [kg]
-    R_SUN = 6.957e8              # 太陽半徑 [m]
-    L_SUN = 3.828e26             # 太陽光度 [W]
+    # 时间单位
+    YEAR = 31556926.0                  # 年 [秒]
     
-    # 轉換因子
-    KM_PER_S_TO_MPC = 1.0 / (H0 * MPC)  # km/s 到 Mpc 的轉換
-    
-    @classmethod
-    def print_constants(cls):
-        """打印所有常數"""
-        print("量子時空統一理論 - 物理常數表")
-        print("=" * 60)
-        print(f"普朗克質量 M_pl = {cls.M_PL:.6e} kg")
-        print(f"哈勃常數 H₀ = {cls.H0:.6e} Hz")
-        print(f"光速 c = {cls.C:.6e} m/s")
-        print(f"引力常數 G = {cls.G:.6e} m³/kg/s²")
-        print(f"天文單位 AU = {cls.AU:.6e} m")
-        print(f"太陽質量 M_sun = {cls.M_SUN:.6e} kg")
-        print("=" * 60)
+    # 其他常数
+    M_PL = 2.176434e-8                 # 普朗克质量 [kg]
+    M_PL_EV = 2.176434e17              # 普朗克质量 [eV]
 
 
-# QST理論特定常數
 class QSTConstants:
-    """QST理論特定常數"""
+    """量子时空统一理论常数 v4.5"""
     
-    # 場值 (歸一化到M_pl)
-    PHI_PLUS = 1.621             # Φ⁺ = φ⁺/M_pl
-    PHI_MINUS = 1.459            # Φ⁻ = φ⁻/M_pl
-    OMEGA = 1.297                # Ω = ω/M_pl
+    # 场值 (归一化)
+    PHI_PLUS = 1.621
+    PHI_MINUS = 1.459
+    OMEGA = 1.297
     
-    # 有效質量 (H₀單位)
-    M_PHI_EFF = 0.08             # m_Φ,eff/H₀
-    M_OMEGA_EFF = 0.06           # m_Ω,eff/H₀
-    MU = 0.00306                 # μ/H₀
+    # 基本常数
+    MU = 0.00306
+    V_CONST = 2.0527
     
-    # 第五力參數
-    M_OMEGA_5TH = 1.44e-21       # 第五力質量 [eV]
-    LAMBDA_5TH = 915.0           # 第五力力程 [AU]
-    BETA0 = 0.279                # 漸近耦合常數
-    M_TH = 1.0e22                # 質量閾值 [kg]
+    # v4.5优化参数 (SPARC优化报告)
+    BETA0 = 0.800                      # 第五力耦合常数 (优化值)
+    M_TH = 1.0e22                      # 质量阈值 [kg]
+    A_LOW = 0.0150                     # 矮星系a_eff比例
+    SIGMA_CRIT = 0.4                   # 临界表面密度 [10^9 M_sun/kpc²]
+    SIGMA_TRANSITION = 2.5             # 过渡表面密度 [10^9 M_sun/kpc²]
+    ALPHA = 1.0                        # 幂律指数 (线性过渡)
     
-    # 勢能常數
-    V_CONST = 2.0527             # 勢能常數
+    # 第五力参数
+    LAMBDA_5TH = 915.0                 # 第五力力程 [AU]
+    M_OMEGA_5TH = 1.44e-21             # 第五力质量 [eV]
     
-    @classmethod
-    def print_qst_constants(cls):
-        """打印QST常數"""
-        print("QST理論特定常數")
-        print("=" * 60)
-        print(f"Φ⁺ = {cls.PHI_PLUS:.6f}")
-        print(f"Φ⁻ = {cls.PHI_MINUS:.6f}")
-        print(f"Ω = {cls.OMEGA:.6f}")
-        print(f"m_Φ,eff/H₀ = {cls.M_PHI_EFF:.6f}")
-        print(f"m_Ω,eff/H₀ = {cls.M_OMEGA_EFF:.6f}")
-        print(f"μ/H₀ = {cls.MU:.6f}")
-        print(f"m_Ω5th = {cls.M_OMEGA_5TH:.6e} eV")
-        print(f"λ = {cls.LAMBDA_5TH:.1f} AU")
-        print(f"β₀ = {cls.BETA0:.6f}")
-        print(f"M_th = {cls.M_TH:.6e} kg")
-        print("=" * 60)
-
-
-if __name__ == "__main__":
-    # 測試代碼
-    PhysicalConstants.print_constants()
-    print()
-    QSTConstants.print_qst_constants()
+    # 宇宙学参数
+    M_PHI_EFF = 0.08                   # m_Φ,eff/H₀
+    M_OMEGA_EFF = 0.06                 # m_Ω,eff/H₀
+    
+    # 标准加速度
+    A0_STANDARD = 1.2e-10              # m/s²
