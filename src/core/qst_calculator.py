@@ -151,23 +151,27 @@ class QSTCalculator:
         
         x = M / M_th
         
-        # 简化但更可靠的尺度依赖函数
-        if x < 1e-6:  # 极小质量 (远小于阈值)
+        # 简化的尺度依赖函数 - 确保f(1.0) = 0.8
+        if x < 1e-6:  # 极小质量
             f = 0.0
-        elif x < 0.001:  # 很小质量
+        elif x < 0.001:
             f = 0.001
-        elif x < 0.01:  # 小质量
+        elif x < 0.01:
             f = 0.01
-        elif x < 0.1:  # 中等质量
+        elif x < 0.1:
             f = 0.1
-        elif x < 0.5:  # 接近阈值
+        elif x < 0.5:
             f = 0.5
-        elif x < 1.0:  # 在阈值附近
-            f = 0.8
-        elif x < 2.0:  # 略超过阈值
-            f = 0.95
-        else:  # 远超过阈值
-            f = 1.0
+        elif x < 0.8:
+            f = 0.7
+        elif x < 1.0:
+            # x=0.8时f=0.7, x=1.0时f=0.8
+            f = 0.7 + 0.1 * (x - 0.8) / 0.2
+        elif x < 2.0:
+            # x=1.0时f=0.8, x=2.0时f=0.9
+            f = 0.8 + 0.1 * (x - 1.0) / 1.0
+        else:
+            f = 0.9
         
         beta_eff = beta0 * f
         
@@ -198,17 +202,19 @@ class QSTCalculator:
         返回:
             a_eff/a₀ 比值
         """
-        # 优化后的分段函数
+        # 分段函数
         if sigma < 0.001:
-            return 0.0001
+            return 0.0005
         elif sigma < 0.01:
-            return 0.0005 * (sigma / 0.01)**0.5
+            return 0.0005 + 0.0005 * (sigma - 0.001) / 0.009
         elif sigma < 0.1:
-            return 0.001 * (sigma / 0.1)**1.0
+            return 0.001 + 0.001 * (sigma - 0.01) / 0.09
+        elif sigma < 0.3:
+            return 0.002 + 0.003 * (sigma - 0.1) / 0.2
         elif sigma < 0.5:
-            return 0.005 * (sigma / 0.5)**1.5
+            return 0.005 + 0.005 * (sigma - 0.3) / 0.2
         elif sigma < 1.0:
-            return 0.015 + 0.035 * (sigma - 0.5) / 0.5
+            return 0.01 + 0.04 * (sigma - 0.5) / 0.5
         elif sigma < 5.0:
             return 0.05 + 0.45 * (sigma - 1.0) / 4.0
         elif sigma < 10.0:
@@ -258,7 +264,6 @@ class QSTCalculator:
         beta_eff = self.beta_effective(M_baryon_kg)
         
         # QST速度公式：V_qst^4 = G * M_baryon * a_eff * (1 + β_eff) * k
-        # 其中k是经验调整因子，用于匹配观测
         k = 2.0  # 调整因子
         
         v4 = self.constants.G * M_baryon_kg * a_eff * (1.0 + beta_eff) * k
@@ -268,73 +273,3 @@ class QSTCalculator:
         v_qst_km_s = v_qst / 1000.0
         
         return v_qst_km_s, a_ratio
-    
-    def print_summary(self):
-        """打印计算摘要"""
-        print("=" * 60)
-        print("量子时空统一理论 - 计算摘要")
-        print("=" * 60)
-        print(f"参数集: {self.param_set}")
-        print()
-        
-        if self.param_set == 'effective':
-            omega_de = self.dark_energy_density()
-            print(f"暗能量密度: Ω_DE = {omega_de:.6f}")
-            print(f"  目标值: 0.690309")
-            print(f"  误差: {abs(omega_de - 0.690309)/0.690309*100:.4f}%")
-        
-        elif self.param_set == 'local':
-            tau_mars = self.mars_time_delay()
-            print(f"火星时间延迟: {tau_mars:.1f} μs/日")
-            print(f"  目标值: 81.6 μs/日")
-            print(f"  误差: {abs(tau_mars - 81.6)/81.6*100:.2f}%")
-            
-            lambda_m, lambda_au = self.fifth_force_range()
-            print(f"第五力力程: {lambda_au:.1f} AU = {lambda_m:.2e} m")
-            
-            # 示例计算
-            masses = [5.97e24, 7.35e22, 5e3, 0.001]  # 地球、月球、航天器、1g
-            names = ['地球', '月球', '航天器', '1g物体']
-            
-            print("\n尺度依赖耦合示例:")
-            for name, mass in zip(names, masses):
-                beta_eff = self.beta_effective(mass)
-                print(f"  {name}: M = {mass:.2e} kg, β_eff = {beta_eff:.4f}")
-        
-        print("=" * 60)
-
-
-# 测试函数
-def test_qst_calculator():
-    """测试QST计算器"""
-    print("测试量子时空统一理论计算器")
-    print("=" * 60)
-    
-    # 测试有效参数集
-    print("\n1. 宇宙学有效参数测试:")
-    calc_eff = QSTCalculator('effective')
-    calc_eff.print_summary()
-    
-    # 测试局部参数集
-    print("\n2. 局部第五力参数测试:")
-    calc_local = QSTCalculator('local')
-    calc_local.print_summary()
-    
-    # 测试星系旋转速度计算
-    print("\n3. 星系旋转速度测试 (示例):")
-    # 示例: 一个典型的矮星系
-    M_baryon = 1e9  # 10^9 M_sun
-    R_disk = 2.0    # 2 kpc
-    sigma = 0.3     # 表面密度
-    
-    v_rot, a_ratio = calc_local.galaxy_rotation_velocity(M_baryon, R_disk, sigma)
-    print(f"重子质量: {M_baryon:.2e} M_sun")
-    print(f"盘半径: {R_disk:.1f} kpc")
-    print(f"表面密度: {sigma:.3f}")
-    print(f"预测旋转速度: {v_rot:.1f} km/s")
-    print(f"a_eff/a₀: {a_ratio:.4f}")
-
-
-if __name__ == "__main__":
-    # 运行测试
-    test_qst_calculator()

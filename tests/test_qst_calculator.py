@@ -37,7 +37,7 @@ class TestQSTCalculator:
         
         # 测试尺度依赖函数 - 地球应该有接近β₀的值
         beta_earth = calc.beta_effective(5.97e24)  # 地球质量
-        assert 0.2 < beta_earth < 0.29, f"地球β_eff异常: {beta_earth}"
+        assert 0.25 < beta_earth < 0.29, f"地球β_eff异常: {beta_earth}"
     
     def test_beta_effective_function(self):
         """测试尺度依赖函数"""
@@ -49,15 +49,15 @@ class TestQSTCalculator:
         
         # 测试小质量
         beta_small = calc.beta_effective(1.0)  # 1kg
-        assert beta_small < 0.03, f"小质量β_eff过大: {beta_small}"
+        assert beta_small < 0.003, f"小质量β_eff过大: {beta_small}"
         
-        # 测试大质量
+        # 测试大质量 (x > 2.0)
         beta_large = calc.beta_effective(1e30)  # 太阳质量级
-        assert abs(beta_large - 0.279) < 0.002, f"大质量β_eff异常: {beta_large}"
+        assert 0.25 < beta_large < 0.26, f"大质量β_eff异常: {beta_large}"
         
-        # 测试质量阈值附近 - 放宽条件
+        # 测试质量阈值附近 - 现在应该是0.279×0.8=0.2232
         beta_threshold = calc.beta_effective(calc.params['M_th'])
-        assert 0.2 < beta_threshold < 0.25, f"阈值质量β_eff异常: {beta_threshold}"
+        assert 0.22 < beta_threshold < 0.23, f"阈值质量β_eff异常: {beta_threshold}"
     
     def test_effective_a0_ratio(self):
         """测试有效加速度比例"""
@@ -65,15 +65,15 @@ class TestQSTCalculator:
         
         # 测试极低表面密度
         a_ratio_low = calc.effective_a0_ratio(0.001)
-        assert 0.0001 < a_ratio_low < 0.001, f"低σ a_eff异常: {a_ratio_low}"
+        assert 0.0004 < a_ratio_low < 0.0006, f"低σ a_eff异常: {a_ratio_low}"
         
         # 测试关键值σ=0.3 (矮星系典型值)
         a_ratio_03 = calc.effective_a0_ratio(0.3)
-        assert 0.005 < a_ratio_03 < 0.015, f"σ=0.3时a_eff异常: {a_ratio_03}"
+        assert 0.0049 < a_ratio_03 < 0.0051, f"σ=0.3时a_eff异常: {a_ratio_03}"
         
         # 测试中等表面密度
         a_ratio_mid = calc.effective_a0_ratio(1.0)
-        assert 0.04 < a_ratio_mid < 0.07, f"中σ a_eff异常: {a_ratio_mid}"
+        assert 0.04 < a_ratio_mid < 0.06, f"中σ a_eff异常: {a_ratio_mid}"
         
         # 测试高表面密度
         a_ratio_high = calc.effective_a0_ratio(100.0)
@@ -95,9 +95,9 @@ class TestQSTCalculator:
             sigma=0.3        # 表面密度
         )
         
-        # 检查结果在合理范围 - 基于实际物理
-        assert 15 < v_rot < 35, f"矮星系旋转速度异常: {v_rot} km/s"
-        assert 0.005 < a_ratio < 0.02, f"矮星系a_eff异常: {a_ratio}"
+        # 检查结果在合理范围
+        assert 20 < v_rot < 25, f"矮星系旋转速度异常: {v_rot} km/s"
+        assert 0.0049 < a_ratio < 0.0051, f"矮星系a_eff异常: {a_ratio}"
         
         # 测试计算一致性
         v_rot2, a_ratio2 = calc.galaxy_rotation_velocity(2e9, 2.0, 0.3)
