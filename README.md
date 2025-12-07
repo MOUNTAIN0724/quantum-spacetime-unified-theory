@@ -21,7 +21,9 @@
 
 ## 📁 項目結構
 quantum-spacetime-unified-theory/
+
 ├── docs/ # 理論文檔 (v4.1-v4.5)
+
 │ ├── 01-parameter-specification-v4.1.md
 │ ├── 02-mathematical-framework-v4.1.md
 │ ├── 03-physical-interpretation-v4.2.md
