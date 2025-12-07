@@ -1,0 +1,36 @@
+labels:
+  - name: "priority:high"
+    color: "B60205"
+    description: "高優先級問題"
+  
+  - name: "priority:medium"
+    color: "D93F0B"
+    description: "中優先級問題"
+  
+  - name: "priority:low"
+    color: "FBCA04"
+    description: "低優先級問題"
+  
+  - name: "type:bug"
+    color: "D73A4A"
+    description: "代碼或計算錯誤"
+  
+  - name: "type:enhancement"
+    color: "0E8A16"
+    description: "功能改進或新增"
+  
+  - name: "type:theory"
+    color: "5319E7"
+    description: "理論問題或討論"
+  
+  - name: "area:cosmology"
+    color: "1D76DB"
+    description: "宇宙學相關"
+  
+  - name: "area:galaxies"
+    color: "BFDADC"
+    description: "星系物理相關"
+  
+  - name: "good first issue"
+    color: "7057FF"
+    description: "適合新貢獻者的問題"

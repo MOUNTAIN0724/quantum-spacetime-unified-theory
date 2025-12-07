@@ -1,51 +1,23 @@
-name: 📚 文檔構建
+name: Deploy Documentation
 
 on:
   push:
-    branches: [main]
-    paths: ['docs/**', 'src/**', '*.py', 'requirements.txt']
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - '*.md'
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     
-    - name: 🐍 設置Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.12"
-    
-    - name: 📦 安裝依賴
-      run: |
-        pip install sphinx sphinx-rtd-theme myst-parser
-        pip install -e .
-    
-    - name: 🏗️ 構建HTML文檔
-      run: |
-        sphinx-build -b html docs/source docs/build/html
-    
-    - name: 🏗️ 構建PDF文檔
-      run: |
-        sphinx-build -b latex docs/source docs/build/latex
-        cd docs/build/latex && pdflatex *.tex
-    
-    - name: 📦 打包文檔
-      run: |
-        cd docs/build && zip -r docs.zip .
-    
-    - name: 📤 上傳文檔構件
-      uses: actions/upload-artifact@v3
-      with:
-        name: documentation
-        path: docs/build/
-    
-    - name: 🚀 部署到GitHub Pages
-      if: github.ref == 'refs/heads/main'
+    - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/build/html
+        publish_dir: ./docs
