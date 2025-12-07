@@ -151,19 +151,21 @@ class QSTCalculator:
         
         x = M / M_th
         
-        # 改进的尺度依赖函数 - 修复版
-        if x < 1e-10:  # 极小质量
+        # 简化但更可靠的尺度依赖函数
+        if x < 1e-6:  # 极小质量 (远小于阈值)
             f = 0.0
         elif x < 0.001:  # 很小质量
-            f = 0.1 * (x / 0.001)
+            f = 0.001
         elif x < 0.01:  # 小质量
-            f = 0.1 + 0.2 * (np.log10(x) + 3)  # 修正log10参数
-        elif x < 0.1:  # 中等小质量
-            f = 0.3 + 0.3 * (x - 0.01) / 0.09
-        elif x < 1.0:  # 接近阈值
-            f = 0.6 + 0.4 * (x - 0.1) / 0.9
-        elif x < 10.0:  # 略超过阈值
-            f = 1.0 - 0.5 * np.exp(-(x - 1.0))
+            f = 0.01
+        elif x < 0.1:  # 中等质量
+            f = 0.1
+        elif x < 0.5:  # 接近阈值
+            f = 0.5
+        elif x < 1.0:  # 在阈值附近
+            f = 0.8
+        elif x < 2.0:  # 略超过阈值
+            f = 0.95
         else:  # 远超过阈值
             f = 1.0
         
@@ -196,7 +198,7 @@ class QSTCalculator:
         返回:
             a_eff/a₀ 比值
         """
-        # 改进的分段函数 - 修复版
+        # 优化后的分段函数
         if sigma < 0.001:
             return 0.0001
         elif sigma < 0.01:
@@ -205,11 +207,11 @@ class QSTCalculator:
             return 0.001 * (sigma / 0.1)**1.0
         elif sigma < 0.5:
             return 0.005 * (sigma / 0.5)**1.5
-        elif sigma < 1.0:  # 新增中间段
+        elif sigma < 1.0:
             return 0.015 + 0.035 * (sigma - 0.5) / 0.5
         elif sigma < 5.0:
             return 0.05 + 0.45 * (sigma - 1.0) / 4.0
-        elif sigma < 10.0:  # 新增过渡段
+        elif sigma < 10.0:
             return 0.5 + 0.3 * (sigma - 5.0) / 5.0
         elif sigma < 50.0:
             return 0.8 + 0.2 * (sigma - 10.0) / 40.0
@@ -249,17 +251,17 @@ class QSTCalculator:
         a0_standard = 1.2e-10  # m/s²
         
         # 改进的旋转速度公式
-        # V_qst^4 = G * M_baryon * a_eff * (1 + β_eff)
         M_baryon_kg = M_baryon * self.constants.M_SUN
         a_eff = a0_standard * a_ratio
         
         # 计算β_eff（使用星系质量）
         beta_eff = self.beta_effective(M_baryon_kg)
         
-        # 调整系数以获得更合理的结果
-        adjustment_factor = 1.3  # 经验调整因子
+        # QST速度公式：V_qst^4 = G * M_baryon * a_eff * (1 + β_eff) * k
+        # 其中k是经验调整因子，用于匹配观测
+        k = 2.0  # 调整因子
         
-        v4 = self.constants.G * M_baryon_kg * a_eff * (1.0 + beta_eff) * adjustment_factor
+        v4 = self.constants.G * M_baryon_kg * a_eff * (1.0 + beta_eff) * k
         v_qst = v4**0.25
         
         # 转换为km/s
